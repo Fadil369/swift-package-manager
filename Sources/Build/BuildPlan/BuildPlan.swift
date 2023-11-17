@@ -448,7 +448,18 @@ public class BuildPlan: SPMBuildCore.BuildPlan {
 
     public func createAPIToolCommonArgs(includeLibrarySearchPaths: Bool) throws -> [String] {
         let buildPath = buildParameters.buildPath.pathString
-        var arguments = ["-I", buildPath]
+        var arguments = ["-I"]
+
+        if let target = targets.compactMap({
+            switch $0 {
+            case .swift(let desc): return desc
+            case .clang: return nil
+            }
+        }).first {
+            arguments += [target.moduleOutputPath.pathString]
+        } else {
+            arguments += [buildPath]
+        }
 
         // swift-symbolgraph-extract does not support parsing `-use-ld=lld` and
         // will silently error failing the operation.  Filter out this flag
